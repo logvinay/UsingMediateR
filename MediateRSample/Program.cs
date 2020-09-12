@@ -11,53 +11,74 @@ namespace MediateRSample
     {
         static void Main(string[] args)
         {
+            // Registering required services into DI container;
             var serviceProvider = BuildServiceProvider<StartUp>();
-            var driverObj = serviceProvider.GetRequiredService<Driver>();
-            driverObj.Run();
+            // resolving main class object from DI container;
+            var main = serviceProvider.GetRequiredService<Main>();
+            // Running Driver functions
+            main.Start();
         }
 
+        /// <summary>
+        /// Build Service Provider
+        /// </summary>
+        /// <typeparam name="T">StartUp Class</typeparam>
+        /// <returns></returns>
         static ServiceProvider BuildServiceProvider<T>() where T : class
         {
             var startUpObj = Activator.CreateInstance(typeof(T));
             var configureService = typeof(T).GetMethod("ConfigureServices");
             var getServiceProvider = typeof(T).GetMethod("GetServiceProvider");
             var services = new ServiceCollection();
-            object[] objects = { services, 243 };
-            configureService.Invoke(startUpObj, objects);
-            object[] obj = { };
-            return (ServiceProvider)getServiceProvider.Invoke(startUpObj, obj);
+            object[] parames = { services };
+            configureService.Invoke(startUpObj, parames);
+            return (ServiceProvider)getServiceProvider.Invoke(startUpObj, parames);
         }
     }
 
-    public class Driver
+    /// <summary>
+    /// Main Class
+    /// </summary>
+    public class Main
     {
         private readonly IMediator _mediator;
-        public Driver(IMediator mediator)
+        public Main(IMediator mediator)
         {
             _mediator = mediator;
         }
 
-        public void Run()
+        public void Start()
         {
-            _mediator.Send(new CommandA { Name = "Vinay", Age = "50" });
+            _mediator.Send(new Command { Name = "Manu", Age = "50" });
         }
     }
 
-    public class CommandA : IRequest<object>
+    /// <summary>
+    /// Command
+    /// </summary>
+    public class Command : IRequest<object>
     {
         public string Name { get; set; }
         public string Age { get; set; }
     }
 
-    public class CommandAHandler : IRequestHandler<CommandA, object>
+    /// <summary>
+    /// Command Handler
+    /// </summary>
+    public class CommandHandler : IRequestHandler<Command, object>
     {
-        public Task<object> Handle(CommandA request, CancellationToken cancellationToken)
+        public Task<object> Handle(Command request, CancellationToken cancellationToken)
         {
-            Console.WriteLine(request.Name + " " + request.Age);
-            return Task.FromResult(new object());
+            Console.WriteLine(System.Text.Json.JsonSerializer.Serialize(request));
+            // Take Action on what to do with request
+            object result = new { Message = "Successful" };
+            return Task.FromResult(result);
         }
     }
 
+    /// <summary>
+    /// Boot Class
+    /// </summary>
     public class StartUp
     {
         private IServiceCollection Services { get; set; }
@@ -79,7 +100,7 @@ namespace MediateRSample
                 Services = services;
             }
             Services.AddMediatR(typeof(StartUp));
-            Services.AddTransient<Driver>();
+            Services.AddTransient<Main>();
         }
 
         /// <summary>
