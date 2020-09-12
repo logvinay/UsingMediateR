@@ -17,6 +17,7 @@ namespace MediateRSample
             var main = serviceProvider.GetRequiredService<Main>();
             // Running Driver functions
             main.Start();
+            Console.ReadLine();
         }
 
         /// <summary>
@@ -32,7 +33,7 @@ namespace MediateRSample
             var services = new ServiceCollection();
             object[] parames = { services };
             configureService.Invoke(startUpObj, parames);
-            return (ServiceProvider)getServiceProvider.Invoke(startUpObj, parames);
+            return (ServiceProvider)getServiceProvider.Invoke(startUpObj, new object[] { });
         }
     }
 
@@ -93,7 +94,7 @@ namespace MediateRSample
         /// <summary>
         /// Configure Services
         /// </summary>
-        public void ConfigureServices(IServiceCollection services, int abc)
+        public void ConfigureServices(IServiceCollection services)
         {
             if (services != null)
             {
