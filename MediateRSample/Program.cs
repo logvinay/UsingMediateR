@@ -1,7 +1,9 @@
-﻿using MediatR;
+﻿using FluentValidation;
+using MediatR;
 using Microsoft.Extensions.DependencyInjection;
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -50,7 +52,7 @@ namespace MediateRSample
 
         public void Start()
         {
-            _mediator.Send(new Command { Name = "Manu", Age = "50" });
+            _mediator.Send(new Command { Name = "Manu" });
         }
     }
 
@@ -68,6 +70,11 @@ namespace MediateRSample
     /// </summary>
     public class CommandHandler : IRequestHandler<Command, object>
     {
+        private readonly A _a;
+        public CommandHandler(A a = null)
+        {
+            _a = a;
+        }
         public Task<object> Handle(Command request, CancellationToken cancellationToken)
         {
             Console.WriteLine(System.Text.Json.JsonSerializer.Serialize(request));
@@ -100,9 +107,14 @@ namespace MediateRSample
             {
                 Services = services;
             }
+            
             Services.AddMediatR(typeof(StartUp));
+            Services.AddTransient(typeof(IPipelineBehavior<,>), typeof(ValidationBehavior<,>));
+            Services.AddTransient<AbstractValidator<Command>, CommandValidator>();
+            Services.AddTransient<AbstractValidator<Command>, CommandValidatorA>();
             Services.AddTransient<Main>();
         }
+
 
         /// <summary>
         /// Get Services Provider
@@ -112,5 +124,56 @@ namespace MediateRSample
         {
             return Services.BuildServiceProvider();
         }
+    }
+
+    public class CommandValidator : AbstractValidator<Command>
+    {
+        public CommandValidator()
+        {
+            RuleFor(x => x.Age).NotEmpty().WithMessage("Age must be specified");
+            RuleFor(x => x.Name).NotEmpty().WithMessage("Please specify a first name");
+        }
+    }
+
+    public class CommandValidatorA : AbstractValidator<Command>
+    {
+        public CommandValidatorA()
+        {
+            RuleFor(x => x.Age).NotEmpty();
+            RuleFor(x => x.Name).NotEmpty().WithMessage("Please specify a first name");
+        }
+    }
+
+    public class ValidationBehavior<TRequest, TResponse> : IPipelineBehavior<TRequest, TResponse>
+    where TRequest : IRequest<TResponse>
+    {
+        private readonly IEnumerable<AbstractValidator<TRequest>> _validators;
+
+        public ValidationBehavior(IEnumerable<AbstractValidator<TRequest>> validators)
+        {
+            _validators = validators;
+        }
+
+        public Task<TResponse> Handle(TRequest request, CancellationToken cancellationToken, RequestHandlerDelegate<TResponse> next)
+        {
+            var context = new ValidationContext<TRequest>(request);
+            var failures = _validators
+                .Select(v => v.Validate(context))
+                .SelectMany(result => result.Errors)
+                .Where(f => f != null)
+                .ToList();
+
+            if (failures.Count != 0)
+            {
+                throw new ValidationException(failures);
+            }
+
+            return next();
+        }
+    }
+
+    public class A
+    {
+        public string Name { get; set; }
     }
 }
