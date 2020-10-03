@@ -52,7 +52,7 @@ namespace MediateRSample
 
         public void Start()
         {
-            _mediator.Send(new Command { Name = "Manu" });
+            _mediator.Send(new Command { Name = "Manu", Age = "32" });
         }
     }
 
@@ -110,6 +110,7 @@ namespace MediateRSample
             
             Services.AddMediatR(typeof(StartUp));
             Services.AddTransient(typeof(IPipelineBehavior<,>), typeof(ValidationBehavior<,>));
+            Services.AddTransient(typeof(IPipelineBehavior<,>), typeof(LoggingBehavior<,>));
             Services.AddTransient<AbstractValidator<Command>, CommandValidator>();
             Services.AddTransient<AbstractValidator<Command>, CommandValidatorA>();
             Services.AddTransient<Main>();
@@ -168,6 +169,22 @@ namespace MediateRSample
                 throw new ValidationException(failures);
             }
 
+            return next();
+        }
+    }
+
+    public class LoggingBehavior<TRequest, TResponse> : IPipelineBehavior<TRequest, TResponse>
+    where TRequest : IRequest<TResponse>
+    {
+
+        public LoggingBehavior(IEnumerable<AbstractValidator<TRequest>> validators)
+        {
+
+        }
+
+        public Task<TResponse> Handle(TRequest request, CancellationToken cancellationToken, RequestHandlerDelegate<TResponse> next)
+        {
+            Console.WriteLine(System.Text.Json.JsonSerializer.Serialize(request));
             return next();
         }
     }
