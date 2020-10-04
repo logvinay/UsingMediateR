@@ -31,7 +31,6 @@ namespace MediateRSample.CommandHandler
         /// <returns></returns>
         public Task<object> Handle(Employee request, CancellationToken cancellationToken)
         {
-            Console.WriteLine(System.Text.Json.JsonSerializer.Serialize(request));
             // Take Action on what to do with request
             object result = new { Message = "Successful" };
             return Task.FromResult(result);

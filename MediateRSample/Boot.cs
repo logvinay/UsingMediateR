@@ -67,8 +67,8 @@ namespace MediateRSample
             Services.AddMediatR(typeof(Boot));
             Services.AddTransient<AbstractValidator<Employee>, EmployeeValidator>();
             Services.AddTransient(typeof(IPipelineBehavior<,>), typeof(ExceptionBehavior<,>));
-            Services.AddTransient(typeof(IPipelineBehavior<,>), typeof(ValidationBehavior<,>));
             Services.AddTransient(typeof(IPipelineBehavior<,>), typeof(LoggingBehavior<,>));
+            Services.AddTransient(typeof(IPipelineBehavior<,>), typeof(ValidationBehavior<,>));
             Services.AddTransient<Main>();
         }
 

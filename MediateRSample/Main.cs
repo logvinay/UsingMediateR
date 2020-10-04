@@ -18,8 +18,8 @@ namespace MediateRSample
 
         public void Start()
         {
-           var result =  _mediator.Send(new Employee() { Name = "Manu", NetSalary = 30000 });
-            Console.WriteLine(Serializer.Serialize(result));
+           var result =  _mediator.Send(new Employee() { Name = "Manu", Age = 32, NetSalary = 30000 });
+            Console.WriteLine("Result:\n" + Serializer.Serialize(result, new System.Text.Json.JsonSerializerOptions { WriteIndented = true }));
         }
     }
 }

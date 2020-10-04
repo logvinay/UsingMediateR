@@ -3,6 +3,7 @@ using Microsoft.Extensions.DependencyInjection;
 using System;
 using System.Collections.Generic;
 using System.Text;
+using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -34,7 +35,7 @@ namespace MediateRSample.Behaviors
             }
             catch (Exception e)
             {
-                Console.WriteLine("Failed with exception: " + e);
+                Console.WriteLine("Exception From Exception Behavior Pipeline:\n" + JsonSerializer.Serialize(e, new JsonSerializerOptions { WriteIndented = true }));
             }
             return (TResponse)result;
         }

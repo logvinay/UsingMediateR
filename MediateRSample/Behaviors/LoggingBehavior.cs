@@ -3,8 +3,10 @@ using Microsoft.Extensions.DependencyInjection;
 using System;
 using System.Collections.Generic;
 using System.Text;
+using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
+using Serializer = System.Text.Json.JsonSerializer;
 
 namespace MediateRSample.Behaviors
 {
@@ -24,13 +26,20 @@ namespace MediateRSample.Behaviors
         /// <param name="factory"></param>
         public LoggingBehavior(IServiceScopeFactory factory)
         {
-
+            /// Logging object can be resolved from factory
         }
 
-        public Task<TResponse> Handle(TRequest request, CancellationToken cancellationToken, RequestHandlerDelegate<TResponse> next)
+        public async Task<TResponse> Handle(TRequest request, CancellationToken cancellationToken, RequestHandlerDelegate<TResponse> next)
         {
-            Console.WriteLine(System.Text.Json.JsonSerializer.Serialize(request));
-            return next();
+            // Pre Logging
+            Console.WriteLine("Prelog:\n" + Serializer.Serialize(request, new JsonSerializerOptions { WriteIndented = true}));
+
+            // Middleware execution
+            var result = await next();
+
+            // Post Logging
+            Console.WriteLine("PostLog:\n" + Serializer.Serialize(result, new JsonSerializerOptions { WriteIndented = true }));
+            return result;
         }
     }
 }
