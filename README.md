@@ -1,4 +1,3 @@
 # UsingMediateR
- Using Fluent Validator in MediatR Behavior Pipeline
- MediateR, Fluent validation in Console Application
+ MediateR, Fluent validation in MediateR Behavior pipeline in Console Application
  
